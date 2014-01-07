@@ -1,23 +1,49 @@
 /**
- * Created with IntelliJ IDEA.
- * User: alex
+ * This class describes GUI the main window of the program.
+ *
+ * User: Alex Iakovenko
  * Date: 02.07.13
  * Time: 19:44
- * To change this template use File | Settings | File Templates.
  */
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.util.*;
 
 public class MainFrame extends JFrame{
-    private static final Dimension WINDOW_SIZE = new Dimension(700,350);
+    /**
+     * Dimension of the frame.
+     */
+    private static final Dimension WINDOW_SIZE = new Dimension(700,400);
+
+    /**
+     * Min value of dimension if frame size have been changed manually by user.
+     */
     private static final Dimension MIN_WINDOW_SIZE = new Dimension(WINDOW_SIZE.width,WINDOW_SIZE.height-30);
+
+    /**
+     * Value of screen resolution where program will execute.
+     */
     private static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
+
+    /**
+     * Dimension of buttons.
+     */
     private static final Dimension RADIOBUTTONS_SIZE = new Dimension(100,25);
+
+    /**
+     * Sets height of status bar component.
+     */
+    private final int STATUS_HEIGHT = 25;
+
+    /**
+     * Main icon of application
+     */
     private static final ImageIcon MAIN_ICON = new ImageIcon("calibre.png");
 
+    private JPanel statusBar;
     private JRadioButton rButMainList;
     private JRadioButton rButRepetition;
 
@@ -40,6 +66,9 @@ public class MainFrame extends JFrame{
     private JLabel totalRepetitions;
     private JLabel numberTotRepetitions;
 
+    /*Labels on the status bar*/
+    private JLabel subject;
+    private JLabel action;
 
     private File importingFile;
     private final Dimension dimButt = new Dimension(120,25);
@@ -63,6 +92,7 @@ public class MainFrame extends JFrame{
 
         repetitionWords = new ArrayList<Word>();
 
+        initStatusBar();
         initRadioButton();
         initButton();
         initMenuBar();
@@ -76,7 +106,12 @@ public class MainFrame extends JFrame{
             @Override
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
-                bCancel.setLocation(getWidth()-bCancel.getWidth()-20, getHeight()-65);
+
+                statusBar.setSize(getWidth()-10, STATUS_HEIGHT);
+                statusBar.setLocation(0, getHeight()-STATUS_HEIGHT*2);
+
+
+                bCancel.setLocation(getWidth()-bCancel.getWidth()-20, getHeight()-90);
                 menu.setBounds(0,0, getWidth(), 25);
                 scrollPaneQuestion.setBounds(10,55, getWidth()-30,50);
                 answer.setBounds(scrollPaneQuestion.getX(),
@@ -103,6 +138,23 @@ public class MainFrame extends JFrame{
             }
         });
 
+    }
+    private void initStatusBar(){
+
+        statusBar = new JPanel();
+        statusBar.setBorder(new BevelBorder(BevelBorder.LOWERED));
+        statusBar.setSize(getWidth()-10, STATUS_HEIGHT);
+        statusBar.setLocation(0, getHeight()-STATUS_HEIGHT*2);
+
+        subject = new JLabel("Subject: ");
+        subject.setMaximumSize(new Dimension(50,25));
+        action = new JLabel("$>");
+
+        statusBar.setLayout(new BorderLayout());
+        statusBar.add(subject, BorderLayout.EAST);
+        statusBar.add(action, BorderLayout.WEST);
+
+        add(statusBar);
     }
     private void initRadioButton(){
         rButMainList = new JRadioButton("Main list", true);
@@ -293,11 +345,11 @@ public class MainFrame extends JFrame{
             @Override
             public void keyPressed(KeyEvent e) {
                 super.keyPressed(e);
-                /** Press Enter-key - accept an answer */
+                /* Press Enter-key - accept an answer */
                 if(e.getKeyCode() == KeyEvent.VK_ENTER ){
                    checkAnswer();
                 }
-                /** Press F1-key - insert a correct answer */
+                /* Press F1-key - insert a correct answer */
                 if(e.getKeyCode() == KeyEvent.VK_F1){
                     if(rButMainList.isSelected() && index>-1)
                         answer.setText(words.get(index).getEWord());
@@ -305,7 +357,7 @@ public class MainFrame extends JFrame{
                         answer.setText(repetitionWords.get(indRepet).getEWord());
                 }
 
-                /** Press F5-key - add current word to repetition list */
+                /* Press F5-key - add current word to repetition list */
                 if(e.getKeyCode() == KeyEvent.VK_F5){
                     repetitionWords.add(words.get(index));
                     numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
@@ -313,7 +365,7 @@ public class MainFrame extends JFrame{
                         rButRepetition.setEnabled(true);
                 }
 
-                /** Press F8-key - delete current answer from repetition list */
+                /* Press F8-key - delete current answer from repetition list */
                 if(e.getKeyCode() == KeyEvent.VK_F8){
                     repetitionWords.remove(indRepet);
                     numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
@@ -321,7 +373,7 @@ public class MainFrame extends JFrame{
                     if(repetitionWords.isEmpty())
                         bRemoveFromRepetition.setEnabled(false);
                 }
-                /** Press F12-key - skip current word  */
+                /* Press F12-key - skip current word  */
                 if(e.getKeyCode() == KeyEvent.VK_F12){
                     if(rButMainList.isSelected())
                         index++;
@@ -455,6 +507,7 @@ public class MainFrame extends JFrame{
             }
 
     }
+
     private void checkAnswer(){
         if(rButMainList.isSelected()){
             if(index == -1){
@@ -486,11 +539,5 @@ public class MainFrame extends JFrame{
                 }
                 progressBar.setValue(indRepet);
             }
-
     }
-
-
-
-
-
 }
