@@ -70,12 +70,18 @@ public class MainFrame extends JFrame{
     private JLabel subject;
     private JLabel action;
 
+    /**
+     * Default value of status bar's label <Code>Subject</Code>
+     */
+    private String nameCurrentSubject = "";
+
     private File importingFile;
     private final Dimension dimButt = new Dimension(120,25);
     private ArrayList<Word> words;
     private ArrayList<Word> repetitionWords;
     private int index = 0;
     private int indRepet = 0;
+
 
     public MainFrame(){
         new JFrame();
@@ -146,7 +152,7 @@ public class MainFrame extends JFrame{
         statusBar.setSize(getWidth()-10, STATUS_HEIGHT);
         statusBar.setLocation(0, getHeight()-STATUS_HEIGHT*2);
 
-        subject = new JLabel("Subject: ");
+        subject = new JLabel(nameCurrentSubject);
         subject.setMaximumSize(new Dimension(50,25));
         action = new JLabel("$>");
 
@@ -361,12 +367,15 @@ public class MainFrame extends JFrame{
                 if(e.getKeyCode() == KeyEvent.VK_F5){
                     repetitionWords.add(words.get(index));
                     numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
+                    showMessage(action, words.get(index).getEWord() + " was added");
                     if(!rButRepetition.isEnabled())
                         rButRepetition.setEnabled(true);
                 }
 
                 /* Press F8-key - delete current answer from repetition list */
                 if(e.getKeyCode() == KeyEvent.VK_F8){
+
+                    showMessage(action, repetitionWords.get(indRepet).getEWord() + " - was removed");
                     repetitionWords.remove(indRepet);
                     numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
                     setQuestion();
@@ -443,10 +452,14 @@ public class MainFrame extends JFrame{
         int ret = fileOpen.showDialog(null, "Open file");
         if (ret == JFileChooser.APPROVE_OPTION) {
             importingFile = fileOpen.getSelectedFile();
-            if(Main.setListAllWords(importingFile))
+            if(Main.setListAllWords(importingFile)){
                 JOptionPane.showMessageDialog(this, "Import success!", "Import file",JOptionPane.INFORMATION_MESSAGE);
-            else
+                nameCurrentSubject = importingFile.getName();
+                showMessage(subject,nameCurrentSubject);
+            }
+            else{
                 JOptionPane.showMessageDialog(this, "Import filed!", "Import file",JOptionPane.ERROR_MESSAGE);
+            }
 
         }
 //        FileDialog fileDialog = new FileDialog(this, "Open file",FileDialog.LOAD);
@@ -540,4 +553,11 @@ public class MainFrame extends JFrame{
                 progressBar.setValue(indRepet);
             }
     }
+    private void showMessage(JLabel label, String message){
+        StringBuilder mess = new StringBuilder(label.getText());
+        mess.setLength(20);
+        mess.append(message);
+        label.setText(mess.toString());
+    }
+
 }
