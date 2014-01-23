@@ -7,6 +7,8 @@
  */
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -29,11 +31,6 @@ public class MainFrame extends JFrame{
     private static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
 
     /**
-     * Dimension of buttons.
-     */
-    private static final Dimension RADIOBUTTONS_SIZE = new Dimension(100,25);
-
-    /**
      * Sets height of status bar component.
      */
     private final int STATUS_HEIGHT = 25;
@@ -41,12 +38,11 @@ public class MainFrame extends JFrame{
     /**
      * Main icon of application
      */
-    private static final ImageIcon MAIN_ICON = new ImageIcon("calibre.png");
-
+    private static final ImageIcon MAIN_ICON = new ImageIcon(Main.icoPath + "calibre.png");
+    private JTabbedPane mainPane;
+    private JPanel mainPanel;
+    private JPanel repetPanel;
     private JPanel statusBar;
-    private JRadioButton rButMainList;
-    private JRadioButton rButRepetition;
-
     private JButton bCancel;
     private JButton bNext;
     private JButton bAnswer;
@@ -81,7 +77,10 @@ public class MainFrame extends JFrame{
     private ArrayList<Word> repetitionWords;
     private int index = 0;
     private int indRepet = 0;
+    private int tabIndex = 0; /* Sets index of the tab is chosen*/
 
+    private final String TAB_MAIN = "Main list";
+    private final String TAB_REPETITION = "Repetition";
 
     public MainFrame(){
         new JFrame();
@@ -94,12 +93,21 @@ public class MainFrame extends JFrame{
                (int)(SCREEN_SIZE.getHeight()/2-getHeight()/2));
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
         getContentPane().setLayout(null);
+        LayoutManager layout = getContentPane().getLayout();
+        BorderLayout bl = new BorderLayout();
+        bl.setVgap(1);
+        getContentPane().setLayout(bl);
+
+
+        mainPanel = new JPanel(layout);
+        repetPanel = new JPanel(layout);
 
         repetitionWords = new ArrayList<Word>();
 
+
         initStatusBar();
-        initRadioButton();
         initButton();
         initMenuBar();
         initTextArea();
@@ -107,178 +115,75 @@ public class MainFrame extends JFrame{
         initProgressBar();
         initLabel();
 
-
+        mainPane = new JTabbedPane();
+        mainPane.addTab(TAB_MAIN, mainPanel);
+        mainPane.addTab(TAB_REPETITION, repetPanel);
+        this.add(mainPane, BorderLayout.CENTER);
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
 
-                statusBar.setSize(getWidth()-10, STATUS_HEIGHT);
-                statusBar.setLocation(0, getHeight()-STATUS_HEIGHT*2);
-
-
-                bCancel.setLocation(getWidth()-bCancel.getWidth()-20, getHeight()-90);
-                menu.setBounds(0,0, getWidth(), 25);
-                scrollPaneQuestion.setBounds(10,55, getWidth()-30,50);
+                bCancel.setLocation(getWidth() - bCancel.getWidth() - 20, getHeight() - 90);
+                menu.setBounds(0, 0, getWidth(), 25);
+                scrollPaneQuestion.setBounds(10, 55, getWidth() - 30, 50);
                 answer.setBounds(scrollPaneQuestion.getX(),
-                        scrollPaneQuestion.getHeight()+scrollPaneQuestion.getY()+10,
+                        scrollPaneQuestion.getHeight() + scrollPaneQuestion.getY() + 10,
                         scrollPaneQuestion.getWidth(), 25);
-                progressBar.setLocation(answer.getX(), answer.getY()+answer.getHeight()+20);
+                progressBar.setLocation(answer.getX(), answer.getY() + answer.getHeight() + 20);
 
-                bAddToRepetition.setLocation(progressBar.getX() + progressBar.getWidth() + 20, progressBar.getY());
-                bRemoveFromRepetition.setLocation(bAddToRepetition.getX(), bAddToRepetition.getY()+30);
-                bNext.setLocation(bAddToRepetition.getX()+bAddToRepetition.getWidth() + 10, bAddToRepetition.getY());
-                bAnswer.setLocation(bNext.getX(), bNext.getY()+30);
+//                bAddToRepetition.setLocation(progressBar.getX() + progressBar.getWidth() + 20, progressBar.getY());
 
-                totalQuestions.setLocation(answer.getX(), progressBar.getY()+progressBar.getHeight()+20);
-                numberTotQuestions.setLocation(totalQuestions.getX()+totalQuestions.getWidth(),
+                bNext.setLocation(getWidth() - bCancel.getWidth() - 20, progressBar.getY());
+                bAnswer.setLocation(bNext.getX(), bNext.getY() + 30);
+
+                totalQuestions.setLocation(answer.getX(), progressBar.getY() + progressBar.getHeight() + 20);
+                numberTotQuestions.setLocation(totalQuestions.getX() + totalQuestions.getWidth(),
                         totalQuestions.getY());
-                curentQuestions.setLocation(totalQuestions.getX(), totalQuestions.getY()+totalQuestions.getHeight()+10);
-                numberOfCurQuastion.setLocation(curentQuestions.getX()+curentQuestions.getWidth(),
+                curentQuestions.setLocation(totalQuestions.getX(), totalQuestions.getY() + totalQuestions.getHeight() + 10);
+                numberOfCurQuastion.setLocation(curentQuestions.getX() + curentQuestions.getWidth(),
                         curentQuestions.getY());
-                totalRepetitions.setLocation(curentQuestions.getX(), curentQuestions.getY()+curentQuestions.getHeight()+10);
-                numberTotRepetitions.setLocation(totalRepetitions.getX()+totalRepetitions.getWidth(),
+                totalRepetitions.setLocation(curentQuestions.getX(), curentQuestions.getY() + curentQuestions.getHeight() + 10);
+                numberTotRepetitions.setLocation(totalRepetitions.getX() + totalRepetitions.getWidth(),
                         totalRepetitions.getY());
 
 
             }
         });
 
+        mainPane.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                try{
+                    JTabbedPane sourceTabbedPane = (JTabbedPane) e.getSource();
+                    tabIndex = sourceTabbedPane.getSelectedIndex();
+                    setQuestion();
+                }catch(RuntimeException ex){
+                    /* Does nothing */
+                }
+            }
+        });
     }
     private void initStatusBar(){
 
         statusBar = new JPanel();
         statusBar.setBorder(new BevelBorder(BevelBorder.LOWERED));
-        statusBar.setSize(getWidth()-10, STATUS_HEIGHT);
-        statusBar.setLocation(0, getHeight()-STATUS_HEIGHT*2);
+        statusBar.setSize(getWidth() - 10, STATUS_HEIGHT);
 
         subject = new JLabel(nameCurrentSubject);
-        subject.setMaximumSize(new Dimension(50,25));
-        action = new JLabel("$>");
+        subject.setMaximumSize(new Dimension(50, 25));
+        action = new JLabel(":");
 
         statusBar.setLayout(new BorderLayout());
         statusBar.add(subject, BorderLayout.EAST);
         statusBar.add(action, BorderLayout.WEST);
 
-        add(statusBar);
+        this.add(statusBar, BorderLayout.SOUTH);
     }
-    private void initRadioButton(){
-        rButMainList = new JRadioButton("Main list", true);
-        rButMainList.setSize(RADIOBUTTONS_SIZE);
-        rButMainList.setLocation(10,25);
-        rButMainList.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                rButRepetition.setSelected(false);
-                bRemoveFromRepetition.setEnabled(false);
-                numberTotQuestions.setText(new Integer(words.size()).toString());
-                setQuestion();
-            }
-        });
 
-        rButRepetition = new JRadioButton("Repetition");
-        rButRepetition.setSize(RADIOBUTTONS_SIZE);
-        rButRepetition.setLocation(rButMainList.getX() + rButMainList.getWidth() + 10, rButMainList.getY());
-        rButRepetition.setEnabled(false);
-        rButRepetition.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                rButMainList.setSelected(false);
-                bAddToRepetition.setEnabled(false);
-                bRemoveFromRepetition.setEnabled(true);
-                numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
-                setQuestion();
-            }
-        });
-
-        add(rButMainList);
-        add(rButRepetition);
-
-    }
-    private void initButton(){
-
-        bCancel = new JButton("Cancel");
-        bCancel.setSize(dimButt);
-        bCancel.setToolTipText("Exit program");
-        bCancel.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-
-        bNext = new JButton("Next");
-        bNext.setToolTipText("Next word <F12>");
-        bNext.setSize(dimButt);
-        bNext.setEnabled(false);
-        bNext.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(rButMainList.isSelected())
-                    index++;
-                if(rButRepetition.isSelected())
-                    indRepet++;
-
-                setQuestion();
-            }
-        });
-
-        bAnswer = new JButton("Answer");
-        bAnswer.setToolTipText("Insert an answer <F1>");
-        bAnswer.setSize(dimButt);
-        bAnswer.setEnabled(false);
-        bAnswer.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(rButMainList.isSelected() && index>-1)
-                    answer.setText(words.get(index).getEWord());
-                if(rButRepetition.isSelected() && indRepet >-1)
-                    answer.setText(repetitionWords.get(indRepet).getEWord());
-            }
-        });
-
-        bAddToRepetition = new JButton("Add to repetition");
-        bAddToRepetition.setToolTipText("Add current word to repetition list <F5>");
-        bAddToRepetition.setSize(dimButt.width+50, dimButt.height);
-        bAddToRepetition.setEnabled(false);
-        bAddToRepetition.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                repetitionWords.add(words.get(index));
-                numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
-                if(!rButRepetition.isEnabled())
-                    rButRepetition.setEnabled(true);
-
-            }
-        });
-
-        bRemoveFromRepetition = new JButton("Remove");
-        bRemoveFromRepetition.setToolTipText("Remove current word from repetition list <F8>");
-        bRemoveFromRepetition.setSize(dimButt.width+50, dimButt.height);
-        bRemoveFromRepetition.setEnabled(false);
-        bRemoveFromRepetition.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                repetitionWords.remove(indRepet);
-                numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
-                setQuestion();
-                if(repetitionWords.isEmpty())
-                    bRemoveFromRepetition.setEnabled(false);
-            }
-        });
-        ButtonGroup groupRepetition = new ButtonGroup();
-        groupRepetition.add(bAddToRepetition);
-        groupRepetition.add(bRemoveFromRepetition);
-
-        add(bCancel);
-        add(bNext);
-        add(bAnswer);
-        add(bAddToRepetition);
-        add(bRemoveFromRepetition);
-    }
     private void initMenuBar(){
         menu = new JMenuBar();
-        menu.setBounds(0,0,getWidth(), 25);
+        menu.setSize(this.getWidth(), 25);
         JMenu menuFile = new JMenu("File");
         ImageIcon openIcon = new ImageIcon(Main.icoPath + "folder_open_icon.png");
         JMenuItem itemOpen = new JMenuItem("Open new dictionary    ",openIcon);
@@ -332,17 +237,9 @@ public class MainFrame extends JFrame{
 
         menu.add(menuFile);
         menu.add(menuEdit);
-        add(menu);
+        add(menu,BorderLayout.NORTH);
     }
-    private void initTextArea(){
-        question = new JTextArea();
-        question.setLineWrap(true);
-        question.setEditable(false);
-        scrollPaneQuestion = new JScrollPane(question);
 
-
-        add(scrollPaneQuestion);
-    }
     private void initTextField(){
         answer = new JTextField();
         add(answer);
@@ -354,12 +251,13 @@ public class MainFrame extends JFrame{
                 /* Press Enter-key - accept an answer */
                 if(e.getKeyCode() == KeyEvent.VK_ENTER ){
                    checkAnswer();
+                   showMessage(action, "");
                 }
                 /* Press F1-key - insert a correct answer */
                 if(e.getKeyCode() == KeyEvent.VK_F1){
-                    if(rButMainList.isSelected() && index>-1)
+                    if(tabIndex == 0 && index>-1)//Tab <code> TAB_MAIN </code> is chosen
                         answer.setText(words.get(index).getEWord());
-                    if(rButRepetition.isSelected() && indRepet >-1)
+                    else if(tabIndex == 1 && indRepet >-1)//Tab <code>TAB_REPETITION</code> is chosen
                         answer.setText(repetitionWords.get(indRepet).getEWord());
                 }
 
@@ -367,15 +265,13 @@ public class MainFrame extends JFrame{
                 if(e.getKeyCode() == KeyEvent.VK_F5){
                     repetitionWords.add(words.get(index));
                     numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
-                    showMessage(action, words.get(index).getEWord() + " was added");
-                    if(!rButRepetition.isEnabled())
-                        rButRepetition.setEnabled(true);
+                    showMessage(action, "< " + words.get(index).getEWord() + " > was added");
                 }
 
                 /* Press F8-key - delete current answer from repetition list */
                 if(e.getKeyCode() == KeyEvent.VK_F8){
 
-                    showMessage(action, repetitionWords.get(indRepet).getEWord() + " - was removed");
+                    showMessage(action, "< " + repetitionWords.get(indRepet).getEWord() + " > was removed");
                     repetitionWords.remove(indRepet);
                     numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
                     setQuestion();
@@ -384,18 +280,108 @@ public class MainFrame extends JFrame{
                 }
                 /* Press F12-key - skip current word  */
                 if(e.getKeyCode() == KeyEvent.VK_F12){
-                    if(rButMainList.isSelected())
+                        if(tabIndex == 0)//Tab <code> TAB_MAIN </code> is chosen
                         index++;
-                    if(rButRepetition.isSelected())
+                    else if(tabIndex == 1)//Tab <code>TAB_REPETITION</code> is chosen
                         indRepet++;
                     setQuestion();
                 }
-
-
-
             }
         });
 
+    }
+    private void initButton(){
+
+        bCancel = new JButton("Cancel");
+        bCancel.setSize(dimButt);
+
+        bCancel.setToolTipText("Exit program");
+        bCancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+
+        this.add(bCancel);
+
+        bNext = new JButton("Next");
+        bNext.setToolTipText("Next word <F12>");
+        bNext.setSize(dimButt);
+        bNext.setEnabled(false);
+        bNext.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(tabIndex == 0)//Tab <code> TAB_MAIN </code> is chosen
+                    index++;
+                else if(tabIndex == 1)//Tab <code>TAB_REPETITION</code> is chosen
+                    indRepet++;
+
+                setQuestion();
+            }
+        });
+
+        bAnswer = new JButton("Answer");
+        bAnswer.setToolTipText("Insert an answer <F1>");
+        bAnswer.setSize(dimButt);
+        bAnswer.setEnabled(false);
+        bAnswer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(tabIndex == 0 && index>-1)//Tab <code> TAB_MAIN </code> is chosen
+                    answer.setText(words.get(index).getEWord());
+                else if(tabIndex == 1 && indRepet >-1)//Tab <code>TAB_REPETITION</code> is chosen
+                    answer.setText(repetitionWords.get(indRepet).getEWord());
+            }
+        });
+
+        bAddToRepetition = new JButton("Add to repetition");
+        bAddToRepetition.setToolTipText("Add current word to repetition list <F5>");
+        bAddToRepetition.setSize(dimButt.width + 50, dimButt.height);
+        bAddToRepetition.setLocation(378, 114);
+        bAddToRepetition.setEnabled(false);
+        bAddToRepetition.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                repetitionWords.add(words.get(index));
+                numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
+                showMessage(action, "< " + words.get(index).getEWord() + " > was added");
+            }
+        });
+
+        bRemoveFromRepetition = new JButton("Remove");
+        bRemoveFromRepetition.setToolTipText("Remove current word from repetition list <F8>");
+        bRemoveFromRepetition.setSize(dimButt.width+50, dimButt.height);
+        bRemoveFromRepetition.setLocation(378, 114);
+        bRemoveFromRepetition.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showMessage(action, "< " + repetitionWords.get(indRepet).getEWord() + " > was removed");
+                repetitionWords.remove(indRepet);
+                numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
+                setQuestion();
+                if(repetitionWords.isEmpty())
+                    bRemoveFromRepetition.setEnabled(false);
+            }
+        });
+        ButtonGroup groupRepetition = new ButtonGroup();
+        groupRepetition.add(bAddToRepetition);
+        groupRepetition.add(bRemoveFromRepetition);
+
+
+        this.add(bNext);
+        this.add(bAnswer);
+        mainPanel.add(bAddToRepetition);
+        repetPanel.add(bRemoveFromRepetition);
+    }
+    private void initTextArea(){
+        question = new JTextArea();
+        question.setSize(100, 50);
+        question.setLineWrap(true);
+        question.setEditable(false);
+        scrollPaneQuestion = new JScrollPane(question);
+
+        this.add(scrollPaneQuestion);
     }
 
 
@@ -409,9 +395,7 @@ public class MainFrame extends JFrame{
         progressBar.setMinimum(0);
         progressBar.setValue(0);
 
-        add(progressBar);
-
-
+        this.add(progressBar);
     }
     private void initLabel(){
         final Dimension labelDim = new Dimension(150, 20);
@@ -421,7 +405,7 @@ public class MainFrame extends JFrame{
         numberTotQuestions = new JLabel("0");
         numberTotQuestions.setSize(labelDim);
 
-        curentQuestions = new JLabel("Curent question: ");
+        curentQuestions = new JLabel("Current question: ");
         curentQuestions.setSize(labelDim);
 
         numberOfCurQuastion = new JLabel ("0");
@@ -433,15 +417,12 @@ public class MainFrame extends JFrame{
         numberTotRepetitions = new JLabel("0");
         numberTotRepetitions.setSize(labelDim);
 
-        add(totalQuestions);
-        add(numberTotQuestions);
-        add(curentQuestions);
-        add(numberOfCurQuastion);
-        add(totalRepetitions);
-        add(numberTotRepetitions);
-
-
-
+        this.add(totalQuestions);
+        this.add(numberTotQuestions);
+        this.add(curentQuestions);
+        this.add(numberOfCurQuastion);
+        this.add(totalRepetitions);
+        this.add(numberTotRepetitions);
     }
 
     private void showFileOpenDialog(){
@@ -492,7 +473,9 @@ public class MainFrame extends JFrame{
 
     }
     private void setQuestion(){
-        if(rButMainList.isSelected()){
+        if(tabIndex == 0){ //Tab <code> TAB_MAIN </code> is chosen
+            numberTotQuestions.setText(new Integer(words.size()).toString());
+            progressBar.setMaximum(words.size());
             progressBar.setValue(index);
             answer.setText("");
                if (index<words.size()){
@@ -505,7 +488,9 @@ public class MainFrame extends JFrame{
                     Collections.shuffle(words);
                }
         }else
-            if(rButRepetition.isSelected()){
+            if(tabIndex == 1){ //Tab <code>TAB_REPETITION</code> is chosen
+                numberTotRepetitions.setText(new Integer(repetitionWords.size()).toString());
+                progressBar.setMaximum(repetitionWords.size());
                 progressBar.setValue(indRepet);
                 answer.setText("");
                 if (indRepet<repetitionWords.size()){
@@ -522,7 +507,7 @@ public class MainFrame extends JFrame{
     }
 
     private void checkAnswer(){
-        if(rButMainList.isSelected()){
+        if(tabIndex == 0){//Tab <code> TAB_MAIN </code> is chosen
             if(index == -1){
                 index++;
                 setQuestion();
@@ -537,7 +522,7 @@ public class MainFrame extends JFrame{
             }
             progressBar.setValue(index);
         }else
-            if(rButRepetition.isSelected()){
+            if(tabIndex == 1){//Tab <code>TAB_REPETITION</code> is chosen
                 if(indRepet == -1){
                     indRepet++;
                     setQuestion();
@@ -553,6 +538,7 @@ public class MainFrame extends JFrame{
                 progressBar.setValue(indRepet);
             }
     }
+
     private void showMessage(JLabel label, String message){
         StringBuilder mess = new StringBuilder(label.getText());
         mess.setLength(20);
