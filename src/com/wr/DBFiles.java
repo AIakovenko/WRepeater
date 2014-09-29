@@ -1,4 +1,4 @@
-/**
+package com.wr; /**
  * Created with IntelliJ IDEA.
  * User: alex
  * Date: 11.09.13

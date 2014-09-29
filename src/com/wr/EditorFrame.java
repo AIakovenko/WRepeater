@@ -1,3 +1,5 @@
+package com.wr;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -197,7 +199,7 @@ public class EditorFrame extends JFrame {
             directoryPath.setText(destinationDir.getAbsolutePath());
 //            tree = updateTree();
             splitPane.updateUI();
-//            if(Main.setListAllWords(importingFile))
+//            if(com.wr.Main.setListAllWords(importingFile))
 //                JOptionPane.showMessageDialog(this, "Import success!", "Import file",JOptionPane.INFORMATION_MESSAGE);
 //            else
 //                JOptionPane.showMessageDialog(this, "Import filed!", "Import file",JOptionPane.ERROR_MESSAGE);

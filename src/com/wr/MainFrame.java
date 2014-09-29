@@ -1,4 +1,4 @@
-/**
+package com.wr; /**
  * This class describes GUI the main window of the program.
  *
  * User: Alex Iakovenko
@@ -36,7 +36,7 @@ public class MainFrame extends JFrame{
     private final int STATUS_HEIGHT = 25;
 
     /**
-     * Main icon of application
+     * com.wr.Main icon of application
      */
     private static final ImageIcon MAIN_ICON = new ImageIcon(Main.icoPath + "calibre.png");
     private JTabbedPane mainPane;
@@ -79,7 +79,7 @@ public class MainFrame extends JFrame{
     private int indRepet = 0;
     private int tabIndex = 0; /* Sets index of the tab is chosen*/
 
-    private final String TAB_MAIN = "Main list";
+    private final String TAB_MAIN = "com.wr.Main list";
     private final String TAB_REPETITION = "Repetition";
 
     public MainFrame(){
@@ -234,6 +234,11 @@ public class MainFrame extends JFrame{
         });
 
         menuEdit.add(itemEditor);
+
+        ImageIcon noteEditIcon = new ImageIcon(Main.icoPath + "billiard_marker.png");
+        JMenuItem itemNoteEdit = new JMenuItem("Edit note", noteEditIcon);
+
+        menuEdit.add(itemNoteEdit);
 
         menu.add(menuFile);
         menu.add(menuEdit);
@@ -452,7 +457,7 @@ public class MainFrame extends JFrame{
 //        importingFile = new File(fileDialog.getDirectory()+fileDialog.getFile());
 //        if(importingFile.getPath().equals("nullnull"))
 //            return;
-//        if(Main.setListAllWords(importingFile))
+//        if(com.wr.Main.setListAllWords(importingFile))
 //                JOptionPane.showMessageDialog(this, "Import success!", "Import file",JOptionPane.INFORMATION_MESSAGE);
 //            else
 //                JOptionPane.showMessageDialog(this, "Import filed!", "Import file",JOptionPane.ERROR_MESSAGE);
