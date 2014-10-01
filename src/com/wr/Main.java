@@ -21,7 +21,7 @@ public class Main {
 
         mainWindow = new FramesRuner();
         mainWindow.runMainFrame();
-        mainWindow.getMainFrame().setVisible(true);
+//        MainFrame.getInstance().setVisible(true);
 
 
     }

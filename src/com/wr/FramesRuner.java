@@ -11,11 +11,9 @@ public class FramesRuner {
     private  MainFrame mainFrame;
 
     public void runMainFrame(){
-        if (mainFrame == null)
-            mainFrame = new MainFrame();
-    }
-    public MainFrame getMainFrame(){
-        return mainFrame;
+
+            mainFrame = MainFrame.getInstance();
+        mainFrame.setVisible(true);
     }
 
 }

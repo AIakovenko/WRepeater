@@ -5,6 +5,8 @@ package com.wr; /**
  * Date: 02.07.13
  * Time: 19:44
  */
+import com.wr.utils.controllers.NoteEditorController;
+
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
@@ -13,8 +15,12 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 
-public class MainFrame extends JFrame{
+public class MainFrame{
+
+    private static MainFrame instance;
+
     /**
      * Dimension of the frame.
      */
@@ -39,6 +45,9 @@ public class MainFrame extends JFrame{
      * com.wr.Main icon of application
      */
     private static final ImageIcon MAIN_ICON = new ImageIcon(Main.icoPath + "calibre.png");
+
+    private static JFrame frame;
+
     private JTabbedPane mainPane;
     private JPanel mainPanel;
     private JPanel repetPanel;
@@ -57,8 +66,8 @@ public class MainFrame extends JFrame{
 
     private JLabel totalQuestions;
     private JLabel numberTotQuestions;
-    private JLabel numberOfCurQuastion;
-    private JLabel curentQuestions;
+    private JLabel numberOfCurQuestion;
+    private JLabel currentQuestions;
     private JLabel totalRepetitions;
     private JLabel numberTotRepetitions;
 
@@ -73,32 +82,105 @@ public class MainFrame extends JFrame{
 
     private File importingFile;
     private final Dimension dimButt = new Dimension(120,25);
-    private ArrayList<Word> words;
-    private ArrayList<Word> repetitionWords;
+    private List<Word> words;
+    private List<Word> repetitionWords;
     private int index = 0;
     private int indRepet = 0;
     private int tabIndex = 0; /* Sets index of the tab is chosen*/
 
-    private final String TAB_MAIN = "com.wr.Main list";
+    private final String TAB_MAIN = "Main list";
     private final String TAB_REPETITION = "Repetition";
 
-    public MainFrame(){
-        new JFrame();
-        setTitle("Learn-Words");
-        setIconImage(MAIN_ICON.getImage());
-        setSize(WINDOW_SIZE);
+    private MainFrame(){
+        frame = new JFrame();
+        initialize();
+
+    }
+    public static MainFrame getInstance(){
+        if (instance == null){
+            instance = new MainFrame();
+        }
+        return instance;
+    }
+
+    /**
+     * Sets the state of Main frame as visible of invisible;
+     * @param b if true the frame is visible;
+     *          if false the frame is invisible;
+     */
+    public void setVisible(boolean b){
+
+        frame.setVisible(b);
+    }
+    /**
+     * Returns list of words which contains values couples values and translations.
+     * @return list value of the question
+     */
+    public List<Word> getList(){
+        if (words != null) {
+            return Collections.unmodifiableList(words);
+        }
+        return null;
+    }
+
+    /**
+     * Changes notes within the list of words.
+     * @param newWord  is a new word.
+     * @param index is an index of word in the list.
+     */
+    public void setWord(Word newWord, int index){
+        words.set(index, newWord);
+    }
+
+    /**
+     * Returns the index of word in word's.
+     * @return index of the current word in list;
+     */
+    public int getIndex(){
+
+        return index;
+    }
+
+    /**
+     * Sets text of the question in text area
+     * @param text new text of the question.
+     */
+    public void setQuestion(String text){
+        question.setText(text);
+    }
+
+    /**Brings up a dialog that displays a message using a default
+    * icon determined by the <code>messageType</code> parameter.
+    *
+    * @param message   the <code>Object</code> to display
+    * @param title     the title string for the dialog
+    * @param messageType the type of message to be displayed:
+    *                  <code>ERROR_MESSAGE</code>,
+    *                  <code>INFORMATION_MESSAGE</code>,
+    *                  <code>WARNING_MESSAGE</code>,
+    *                  <code>QUESTION_MESSAGE</code>,
+    *                  or <code>PLAIN_MESSAGE</code>
+    */
+    public void showMessage(String message, String title, int messageType){
+        JOptionPane.showMessageDialog(frame, message, title, messageType);
+    }
+
+    private void initialize(){
+        frame.setTitle("Learn-Words");
+        frame.setIconImage(MAIN_ICON.getImage());
+        frame.setSize(WINDOW_SIZE);
 //        setResizable(false);
-        setMinimumSize(MIN_WINDOW_SIZE);
-        setLocation((int)(SCREEN_SIZE.getWidth()/2-getWidth()/2),
-               (int)(SCREEN_SIZE.getHeight()/2-getHeight()/2));
+        frame.setMinimumSize(MIN_WINDOW_SIZE);
+        frame.setLocation((int) (SCREEN_SIZE.getWidth() / 2 - frame.getWidth() / 2),
+                (int) (SCREEN_SIZE.getHeight() / 2 - frame.getHeight() / 2));
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        frame.setDefaultCloseOperation(frame.DISPOSE_ON_CLOSE);
 
-        getContentPane().setLayout(null);
-        LayoutManager layout = getContentPane().getLayout();
+        frame.getContentPane().setLayout(null);
+        LayoutManager layout = frame.getContentPane().getLayout();
         BorderLayout bl = new BorderLayout();
         bl.setVgap(1);
-        getContentPane().setLayout(bl);
+        frame.getContentPane().setLayout(bl);
 
 
         mainPanel = new JPanel(layout);
@@ -118,15 +200,15 @@ public class MainFrame extends JFrame{
         mainPane = new JTabbedPane();
         mainPane.addTab(TAB_MAIN, mainPanel);
         mainPane.addTab(TAB_REPETITION, repetPanel);
-        this.add(mainPane, BorderLayout.CENTER);
-        addComponentListener(new ComponentAdapter() {
+        frame.add(mainPane, BorderLayout.CENTER);
+        frame.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
 
-                bCancel.setLocation(getWidth() - bCancel.getWidth() - 20, getHeight() - 90);
-                menu.setBounds(0, 0, getWidth(), 25);
-                scrollPaneQuestion.setBounds(10, 55, getWidth() - 30, 50);
+                bCancel.setLocation(frame.getWidth() - bCancel.getWidth() - 20, frame.getHeight() - 90);
+                menu.setBounds(0, 0, frame.getWidth(), 25);
+                scrollPaneQuestion.setBounds(10, 55, frame.getWidth() - 30, 50);
                 answer.setBounds(scrollPaneQuestion.getX(),
                         scrollPaneQuestion.getHeight() + scrollPaneQuestion.getY() + 10,
                         scrollPaneQuestion.getWidth(), 25);
@@ -134,16 +216,16 @@ public class MainFrame extends JFrame{
 
 //                bAddToRepetition.setLocation(progressBar.getX() + progressBar.getWidth() + 20, progressBar.getY());
 
-                bNext.setLocation(getWidth() - bCancel.getWidth() - 20, progressBar.getY());
+                bNext.setLocation(frame.getWidth() - bCancel.getWidth() - 20, progressBar.getY());
                 bAnswer.setLocation(bNext.getX(), bNext.getY() + 30);
 
                 totalQuestions.setLocation(answer.getX(), progressBar.getY() + progressBar.getHeight() + 20);
                 numberTotQuestions.setLocation(totalQuestions.getX() + totalQuestions.getWidth(),
                         totalQuestions.getY());
-                curentQuestions.setLocation(totalQuestions.getX(), totalQuestions.getY() + totalQuestions.getHeight() + 10);
-                numberOfCurQuastion.setLocation(curentQuestions.getX() + curentQuestions.getWidth(),
-                        curentQuestions.getY());
-                totalRepetitions.setLocation(curentQuestions.getX(), curentQuestions.getY() + curentQuestions.getHeight() + 10);
+                currentQuestions.setLocation(totalQuestions.getX(), totalQuestions.getY() + totalQuestions.getHeight() + 10);
+                numberOfCurQuestion.setLocation(currentQuestions.getX() + currentQuestions.getWidth(),
+                        currentQuestions.getY());
+                totalRepetitions.setLocation(currentQuestions.getX(), currentQuestions.getY() + currentQuestions.getHeight() + 10);
                 numberTotRepetitions.setLocation(totalRepetitions.getX() + totalRepetitions.getWidth(),
                         totalRepetitions.getY());
 
@@ -168,7 +250,7 @@ public class MainFrame extends JFrame{
 
         statusBar = new JPanel();
         statusBar.setBorder(new BevelBorder(BevelBorder.LOWERED));
-        statusBar.setSize(getWidth() - 10, STATUS_HEIGHT);
+        statusBar.setSize(frame.getWidth() - 10, STATUS_HEIGHT);
 
         subject = new JLabel(nameCurrentSubject);
         subject.setMaximumSize(new Dimension(50, 25));
@@ -178,12 +260,12 @@ public class MainFrame extends JFrame{
         statusBar.add(subject, BorderLayout.EAST);
         statusBar.add(action, BorderLayout.WEST);
 
-        this.add(statusBar, BorderLayout.SOUTH);
+        frame.add(statusBar, BorderLayout.SOUTH);
     }
 
     private void initMenuBar(){
         menu = new JMenuBar();
-        menu.setSize(this.getWidth(), 25);
+        menu.setSize(frame.getWidth(), 25);
         JMenu menuFile = new JMenu("File");
         ImageIcon openIcon = new ImageIcon(Main.icoPath + "folder_open_icon.png");
         JMenuItem itemOpen = new JMenuItem("Open new dictionary    ",openIcon);
@@ -237,17 +319,23 @@ public class MainFrame extends JFrame{
 
         ImageIcon noteEditIcon = new ImageIcon(Main.icoPath + "billiard_marker.png");
         JMenuItem itemNoteEdit = new JMenuItem("Edit note", noteEditIcon);
+        itemNoteEdit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                NoteEditorController noteEditorController = NoteEditorController.getInstance();
+            }
+        });
 
         menuEdit.add(itemNoteEdit);
 
         menu.add(menuFile);
         menu.add(menuEdit);
-        add(menu,BorderLayout.NORTH);
+        frame.add(menu, BorderLayout.NORTH);
     }
 
     private void initTextField(){
         answer = new JTextField();
-        add(answer);
+        frame.add(answer);
 
         answer.addKeyListener(new KeyAdapter() {
             @Override
@@ -304,11 +392,11 @@ public class MainFrame extends JFrame{
         bCancel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                dispose();
+                frame.dispose();
             }
         });
 
-        this.add(bCancel);
+        frame.add(bCancel);
 
         bNext = new JButton("Next");
         bNext.setToolTipText("Next word <F12>");
@@ -374,8 +462,8 @@ public class MainFrame extends JFrame{
         groupRepetition.add(bRemoveFromRepetition);
 
 
-        this.add(bNext);
-        this.add(bAnswer);
+        frame.add(bNext);
+        frame.add(bAnswer);
         mainPanel.add(bAddToRepetition);
         repetPanel.add(bRemoveFromRepetition);
     }
@@ -386,21 +474,21 @@ public class MainFrame extends JFrame{
         question.setEditable(false);
         scrollPaneQuestion = new JScrollPane(question);
 
-        this.add(scrollPaneQuestion);
+        frame.add(scrollPaneQuestion);
     }
 
 
     private void initProgressBar(){
 
         progressBar = new JProgressBar();
-        progressBar.setSize(getWidth()/2,25);
+        progressBar.setSize(frame.getWidth()/2,25);
         progressBar.setStringPainted(true);
 
         progressBar.setMaximum(100);
         progressBar.setMinimum(0);
         progressBar.setValue(0);
 
-        this.add(progressBar);
+        frame.add(progressBar);
     }
     private void initLabel(){
         final Dimension labelDim = new Dimension(150, 20);
@@ -410,11 +498,11 @@ public class MainFrame extends JFrame{
         numberTotQuestions = new JLabel("0");
         numberTotQuestions.setSize(labelDim);
 
-        curentQuestions = new JLabel("Current question: ");
-        curentQuestions.setSize(labelDim);
+        currentQuestions = new JLabel("Current question: ");
+        currentQuestions.setSize(labelDim);
 
-        numberOfCurQuastion = new JLabel ("0");
-        numberOfCurQuastion.setSize(labelDim);
+        numberOfCurQuestion = new JLabel ("0");
+        numberOfCurQuestion.setSize(labelDim);
 
         totalRepetitions = new JLabel("Total repetition");
         totalRepetitions.setSize(labelDim);
@@ -422,12 +510,12 @@ public class MainFrame extends JFrame{
         numberTotRepetitions = new JLabel("0");
         numberTotRepetitions.setSize(labelDim);
 
-        this.add(totalQuestions);
-        this.add(numberTotQuestions);
-        this.add(curentQuestions);
-        this.add(numberOfCurQuastion);
-        this.add(totalRepetitions);
-        this.add(numberTotRepetitions);
+        frame.add(totalQuestions);
+        frame.add(numberTotQuestions);
+        frame.add(currentQuestions);
+        frame.add(numberOfCurQuestion);
+        frame.add(totalRepetitions);
+        frame.add(numberTotRepetitions);
     }
 
     private void showFileOpenDialog(){
@@ -439,12 +527,12 @@ public class MainFrame extends JFrame{
         if (ret == JFileChooser.APPROVE_OPTION) {
             importingFile = fileOpen.getSelectedFile();
             if(Main.setListAllWords(importingFile)){
-                JOptionPane.showMessageDialog(this, "Import success!", "Import file",JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Import success!", "Import file",JOptionPane.INFORMATION_MESSAGE);
                 nameCurrentSubject = importingFile.getName();
                 showMessage(subject,nameCurrentSubject);
             }
             else{
-                JOptionPane.showMessageDialog(this, "Import filed!", "Import file",JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Import filed!", "Import file",JOptionPane.ERROR_MESSAGE);
             }
 
         }
@@ -485,7 +573,7 @@ public class MainFrame extends JFrame{
             answer.setText("");
                if (index<words.size()){
                     question.setText(words.get(index).getRWord());
-                    numberOfCurQuastion.setText(new Integer(index+1).toString());
+                    numberOfCurQuestion.setText(new Integer(index+1).toString());
                }
                else{
                     question.setText("End of file!!!");
@@ -500,7 +588,7 @@ public class MainFrame extends JFrame{
                 answer.setText("");
                 if (indRepet<repetitionWords.size()){
                     question.setText(repetitionWords.get(indRepet).getRWord());
-                    numberOfCurQuastion.setText(new Integer(indRepet+1).toString());
+                    numberOfCurQuestion.setText(new Integer(indRepet+1).toString());
                 }
                 else{
                     question.setText("End of file!!!");
