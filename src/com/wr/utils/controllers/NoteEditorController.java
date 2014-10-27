@@ -3,6 +3,7 @@ package com.wr.utils.controllers;
 import com.wr.MainFrame;
 import com.wr.Word;
 import com.wr.utils.NoteEditorFrame;
+import com.wr.utils.commands.EditFileCommand;
 import com.wr.utils.commands.EditNoteCommand;
 import com.wr.utils.commands.ICommand;
 
@@ -53,6 +54,16 @@ public class NoteEditorController {
             public void actionPerformed(ActionEvent e) {
                 noteEditorFrame.setVisible(false);
                 noteEditorFrame = null;
+            }
+        });
+
+        JButton buttonEditFile = noteEditorFrame.getButtonEditFile();
+        buttonEditFile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ICommand command = new EditFileCommand();
+                command.execute();
+
             }
         });
     }

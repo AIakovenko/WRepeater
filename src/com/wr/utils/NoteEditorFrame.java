@@ -6,6 +6,7 @@ import com.wr.Main;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 /**
  * @autor Alex Iakovenko
@@ -36,6 +37,7 @@ public class NoteEditorFrame {
 
     private JButton buttonOK;
     private JButton buttonCancel;
+    private JButton buttonEditFile;
 
 
 
@@ -161,6 +163,41 @@ public class NoteEditorFrame {
         return buttonCancel;
     }
 
+    /**
+     * Returns the instance of button "Edit file";
+     * @return the instance of button "Edit file".
+     */
+    public JButton getButtonEditFile(){
+
+        return buttonEditFile;
+    }
+
+    /**
+     * Shows file open dialog. Method returns instance of <code>File</code>.
+     * If it was chosen nothing method returns <code>null</code>.
+     * @param title window's title.
+     * @return instance of File or null.
+     */
+    public File showOpenFileDialog(String title){
+
+        return OpenFileDialog.showOpenFileDialog(frame, title);
+    }
+
+    /**Brings up a dialog that displays a message using a default
+     * icon determined by the <code>messageType</code> parameter.
+     *
+     * @param message   the <code>Object</code> to display
+     * @param title     the title string for the dialog
+     * @param messageType the type of message to be displayed:
+     *                  <code>ERROR_MESSAGE</code>,
+     *                  <code>INFORMATION_MESSAGE</code>,
+     *                  <code>WARNING_MESSAGE</code>,
+     *                  <code>QUESTION_MESSAGE</code>,
+     *                  or <code>PLAIN_MESSAGE</code>
+     */
+    public void showMessage(String message, String title, int messageType){
+        JOptionPane.showMessageDialog(frame, message, title, messageType);
+    }
 
     private void initialize(){
         frame.setIconImage(MAIN_ICON.getImage());
@@ -212,11 +249,17 @@ public class NoteEditorFrame {
 
         buttonOK = new JButton("Ok");
         buttonCancel = new JButton("Cancel");
+        buttonEditFile = new JButton("Edit file");
 
-        JPanel bPanel = new JPanel(new FlowLayout());
-        bPanel.add(buttonOK);
-        bPanel.add(buttonCancel);
-        panel.add(bPanel, BorderLayout.EAST);
+        JPanel rightPanel = new JPanel(new FlowLayout());
+        JPanel leftPanel = new JPanel(new FlowLayout());
+
+        rightPanel.add(buttonOK);
+        rightPanel.add(buttonCancel);
+
+        leftPanel.add(buttonEditFile);
+        panel.add(rightPanel, BorderLayout.EAST);
+        panel.add(leftPanel, BorderLayout.WEST);
 
         return panel;
     }
